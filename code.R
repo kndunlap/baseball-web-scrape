@@ -2,8 +2,9 @@ library(tidyverse)
 library(rvest)
 # Import Most of the Stats ------------------------------------------------
 
-baseball <- function(team, year, fill = WAR) {
+baseball <- function(team, year, stat, fill = WAR) {
   fill <- ensym(fill)
+  stat <- ensym(stat)
   random <- sample(4:7)
   Sys.sleep(random)
   team <- ensym(team)
@@ -63,9 +64,9 @@ combined <- hitters |>
   arrange(desc(WAR))
 
 print(combined)
-title <- paste0(team, " ", year, " ", "Home Runs")
+title <- paste0(team, " ", year, " ", stat)
 p <- combined |>
-  ggplot(aes(x = reorder(Name, HR), y = HR, fill = {{fill}})) + geom_bar(stat = 'identity') + coord_flip() + xlab(" ") +
+  ggplot(aes(x = reorder(Name, {{stat}}), y = {{stat}}, fill = {{fill}})) + geom_bar(stat = 'identity') + coord_flip() + xlab(" ") +
   scale_fill_gradient(
     low = "#0C2340",
     high = "#FA4616",
@@ -85,7 +86,7 @@ p <- combined |>
 p
 }
 
-baseball(sf, 2004, RBI)
+baseball(sf, 2004, R, RBI)
 
 
 

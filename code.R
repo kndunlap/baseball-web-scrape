@@ -2,7 +2,8 @@ library(tidyverse)
 library(rvest)
 # Import Most of the Stats ------------------------------------------------
 
-import_clean <- function(team, year) {
+baseball <- function(team, year, fill = WAR) {
+  fill <- ensym(fill)
   random <- sample(4:7)
   Sys.sleep(random)
   team <- ensym(team)
@@ -11,7 +12,7 @@ import_clean <- function(team, year) {
   team <- toupper(team)
   
 bbref_url <- paste0("https://www.baseball-reference.com/teams/", team, "/", year, ".shtml")
-espn_url <- "https://www.espn.com/mlb/team/stats/_/name/cle/season/2023/seasontype/2"
+espn_url <- paste0("https://www.espn.com/mlb/team/stats/_/name/", team, "/season/", year, "/seasontype/2")
 html_bbref <- read_html(bbref_url)
 html_espn <- read_html(espn_url)
 
@@ -39,8 +40,7 @@ hitters <- hitters |>
   slice_head(n = -4) |>
   rename(Doubles = `2B`,
          Triples = `3B`, 
-         OPS_Plus = `OPS+`) |>
-  arrange(desc(OPS_Plus))
+         OPS_Plus = `OPS+`) 
 
 tables <- html_espn |>
   html_table()
@@ -59,21 +59,13 @@ combined <- hitters |>
     G = G.x,
     BB = BB.x,
     SO = SO.x) |>
-  select(!Name.y:BB.y)
+  select(!Name.y:BB.y) |>
+  arrange(desc(WAR))
 
-return(combined)
-
-
-}
-
-import_clean(det, 2023)
-
-
-
-# Graph -------------------------------------------------------------------
-
-combined |>
-  ggplot(aes(x = reorder(Name, HR), y = HR, fill = WAR)) + geom_bar(stat = 'identity') + coord_flip() + xlab(" ") +
+print(combined)
+title <- paste0(team, " ", year, " ", "Home Runs")
+p <- combined |>
+  ggplot(aes(x = reorder(Name, HR), y = HR, fill = {{fill}})) + geom_bar(stat = 'identity') + coord_flip() + xlab(" ") +
   scale_fill_gradient(
     low = "#0C2340",
     high = "#FA4616",
@@ -81,8 +73,8 @@ combined |>
     na.value = "grey50",
     guide = "colourbar",
     aesthetics = "fill",
-    name = "WAR"
-  ) + ggtitle("Atlanta Braves 2021 Home Runs") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+    name = fill
+  ) + ggtitle(title) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                        panel.background = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(hjust = 0.5), 
                                                        legend.position = c(.97, .85),
                                                        legend.justification = c("right", "top"),
@@ -90,14 +82,12 @@ combined |>
                                                        legend.margin = margin(6, 6, 6, 6))
 
 
-import <- function(team, year) {
-  team <- ensym(team)
-  team <- as.character(team)
-  year <- as.character(year)
-  team <- toupper(team)
-  
-  wsox_2023 <- paste0("https://www.baseball-reference.com/teams/", team, "/", year, ".shtml")
-  return(wsox_2023)
+p
 }
 
-import(det, 2023)
+baseball(sf, 2004, RBI)
+
+
+
+
+

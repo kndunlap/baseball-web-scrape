@@ -8,8 +8,11 @@ library(rvest)
 
 
 savant <- function(savant_num, bbref_team) {
-  
 Sys.sleep(2)
+bbref_team <- ensym(bbref_team)
+team_name <- as.character(bbref_team)
+  
+
 savant_url <- paste0("https://baseballsavant.mlb.com/team/", savant_num)
 
 html_savant <- read_html(savant_url)
@@ -51,25 +54,17 @@ htable_clean <- htable_final |>
   mutate(
     Player = sub("\\#", "", Player)
   ) |>
-  inner_join(bbref_h, join_by(Player)) |>
   mutate(
     Pitches = sub(",", "", Pitches)
     ) |>
-  mutate_at(vars(4:26), as.numeric) |>
-  mutate_at(vars(54:60), as.numeric) |>
   select(!`NA`) |>
-  mutate(
-    BABIP = (H-HR)/(AB-HR-SO+SF)
-  ) |>
-  mutate(
-    BABIP = round(BABIP, 3)
-  ) |>
-  relocate(BABIP, .after = Season)
+  mutate_at(vars(3:52), as.numeric)
 
 return(htable_clean)
 
 }
 
+savant(110, HOU)
 
 # Scrape Baseball Reference -----------------------------------------------
 

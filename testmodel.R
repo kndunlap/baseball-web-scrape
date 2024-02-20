@@ -52,20 +52,28 @@ combined <- hitters |>
 combined_tigers <- combined 
 combined_guardians <- combined
 
-both <- rbind(combined_tigers, combined_guardians)
+both <- combined_guardians
 
 model <- lm(Age ~ WAR, data = both)
 summary(model)
 
 ggplot(both, aes(x = Age, y = WAR)) + geom_point() + geom_smooth(method = "lm")
 
-for (i in 3:ncol(both)) {
-  output[[i]] <- cor(alltest[,2], alltest[,i])
-  
+output <- list()
+for (col_index in 5:ncol(both)) {
+  col_name <- colnames(both)[col_index]
+  result <- lm(formula(paste(col_name, "~ WAR")), data = both)
+  output[[col_name]] <- coef(summary(result))["WAR", "Pr(>|t|)"]
 }
 
-overall_p(model)
-
+output <- data.frame(output)
+output |>
+  pivot_longer(
+    cols = 1:ncol(output),
+    names_to = "pvalue",
+    values_to = "test") |>
+  arrange(test) |>
+  print(n = Inf)
 
 # Fit a linear regression model
 model <- lm(SO ~ WAR, data = both)
@@ -78,3 +86,10 @@ summary_model$coefficients[, "Pr(>|t|)"]
 summary_model
 
 ggplot(both, aes(x = SO, y = WAR)) + geom_point() + geom_smooth(method = "lm")
+
+
+
+output <- sapply(both[, 5:ncol(both)], function(column) {
+  result <- lm(column ~ WAR, data = both)
+  coef(summary(result))["WAR", "Pr(>|t|)"]
+})

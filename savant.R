@@ -1,37 +1,21 @@
+# Load Packages -----------------------------------------------------------
+
 library(tidyverse)
 library(rvest)
 
+
+# Scrape Baseball Savant --------------------------------------------------
+
+
 savant <- function(savant_num, bbref_team) {
-
-bbref_team <- ensym(bbref_team)
-team_name <- as.character(bbref_team)
-
-
+  
+Sys.sleep(2)
 savant_url <- paste0("https://baseballsavant.mlb.com/team/", savant_num)
-bbref_url <- paste0("https://www.baseball-reference.com/teams/", bbref_team, "/2023.shtml")
 
 html_savant <- read_html(savant_url)
-html_bbref <- read_html(bbref_url)
 
 savant_table <- html_savant |>
   html_table()
-
-bbref_table <- html_bbref |>
-  html_table() 
-
-bbref_h <- bbref_table[[1]] |>
-  mutate(
-    Player = Name
-  ) |>
-  select(SF, Player, SB, CS, GDP, HBP, IBB, SH) |>
-  mutate(
-    Player = sub("\\*", "", Player)
-  ) |>
-  mutate(
-    Player = sub("\\#", "", Player)
-  ) 
-
-
 
 hitters_tables1 <- savant_table[[1]]
 hitters_tables2 <- savant_table[[2]]
@@ -57,7 +41,7 @@ htable_clean <- htable_final |>
     Team = team_name
   ) |>
   relocate(Team, .after = Season) |>
-  filter(!Player %in% c("Tigers", "MLB")) |>
+  slice(1:(n() - 2)) |>
   mutate(
     Player = sub("([^,]+),\\s*([^,]+)", "\\2 \\1", Player)
     ) |>
@@ -85,6 +69,48 @@ htable_clean <- htable_final |>
 return(htable_clean)
 
 }
+
+
+# Scrape Baseball Reference -----------------------------------------------
+
+bbref <- function(bbref_team) {
+  Sys.sleep(2)
+  bbref_team <- ensym(bbref_team)
+  team_name <- as.character(bbref_team)
+  bbref_url <- paste0("https://www.baseball-reference.com/teams/", bbref_team, "/2023.shtml")
+  
+  html_bbref <- read_html(bbref_url)
+  bbref_table <- html_bbref |>
+    html_table() 
+  
+  bbref_h <- bbref_table[[1]] |>
+    mutate(
+      Player = Name
+    ) |>
+    select(Player, PA, SB, CS, GDP, HBP, IBB, SH, `OPS+`, SF) |>
+    filter(PA > 1) |>
+    mutate(
+      Stance = case_when(
+        grepl("\\*", Player) ~ "L",
+        grepl("#", Player) ~ "S",
+        .default = "R")
+    ) |>
+    mutate(
+      Player = sub("\\*", "", Player)
+    ) |>
+    mutate(
+      Player = sub("\\#", "", Player)
+    ) |>
+    filter(!Player %in% c("Team Totals", "Name")) |>
+    mutate_at(vars(2:8), as.numeric)
+  return(bbref_h)
+}
+
+bbref(DET) |>
+  print(n = Inf)
+
+
+# Join Baseball Reference and Savant --------------------------------------
 
 
 ### AL EAST

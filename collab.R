@@ -191,9 +191,20 @@ final_dset <- fg_dataset |>
   rename_with(~ str_remove(., "\\.x$"), ends_with(".x")) |>
   relocate(HR, ERA_p, FIP_p, OPS, .after = Team)
 
+
+
+
+
+
+
+
+
+
+
+
 # Function ----------------------------------------------------------------
 
-rank <- function(stat1, stat2, stat3, stat4, stat5, stat6, stat7, stat8, stat9, stat10, stat11, team1, team2) {
+rank <- function(team1, team2, stat1, stat2, stat3, stat4, stat5, stat6, stat7, stat8, stat9, stat10, stat11 ) {
   ensym(stat1)
   ensym(stat2)
   ensym(stat3)
@@ -224,4 +235,21 @@ rank <- function(stat1, stat2, stat3, stat4, stat5, stat6, stat7, stat8, stat9, 
 table <- rank(AVG, OPS, R, HR, SB, ERA_p, WHIP_p, BB9_p, K_9_p, H_9_p, HR_9_p, "ATL", "DET")
 
 
+rank <- function(team1, team2, ...) {
+  stats <- ensyms(...)
+  
+  fivetwo <- final_dset |> 
+    select(team_name, !!!stats) |>
+    filter(team_name == {{team1}} | team_name == {{team2}}) |>
+    pivot_longer(cols = -team_name, names_to = "Stat", values_to = "Value") |>
+    pivot_wider(names_from = team_name, values_from = Value) |>
+    mutate(across(where(is.numeric), ~ signif(., 3))) 
+    
+    print(fivetwo)
+  
+}
 
+# Run This ----------------------------------------------------------------
+
+
+table <- rank("ATL", "DET", AVG, OPS, R, HR, SB, ERA_p, WHIP_p, BB9_p, K_9_p, H_9_p, HR_9_p)

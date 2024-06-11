@@ -194,46 +194,7 @@ final_dset <- fg_dataset |>
 
 
 
-
-
-
-
-
-
-
-
 # Function ----------------------------------------------------------------
-
-rank <- function(team1, team2, stat1, stat2, stat3, stat4, stat5, stat6, stat7, stat8, stat9, stat10, stat11 ) {
-  ensym(stat1)
-  ensym(stat2)
-  ensym(stat3)
-  ensym(stat4)
-  ensym(stat5)
-  ensym(stat6)
-  ensym(stat7)
-  ensym(stat8)
-  ensym(stat9)
-  ensym(stat10)
-  ensym(stat11)
-  
-  fivetwo <- final_dset |> 
-    select(team_name, {{stat1}}, {{stat2}}, {{stat3}}, {{stat4}}, {{stat5}}, {{stat6}}, {{stat7}}, {{stat8}}, {{stat9}}, {{stat10}}, {{stat11}}) |>
-    filter(team_name == {{team1}} | team_name == {{team2}}) |>
-    pivot_longer(cols = -team_name, names_to = "Stat", values_to = "Value") |>
-    pivot_wider(names_from = team_name, values_from = Value) |>
-    mutate(across(where(is.numeric), ~ signif(., 3))) |>
-  
-    
-  print(fivetwo)
-  
-}
-
-# Run This ----------------------------------------------------------------
-
-
-table <- rank(AVG, OPS, R, HR, SB, ERA_p, WHIP_p, BB9_p, K_9_p, H_9_p, HR_9_p, "ATL", "DET")
-
 
 rank <- function(team1, team2, ...) {
   stats <- ensyms(...)
@@ -244,12 +205,12 @@ rank <- function(team1, team2, ...) {
     pivot_longer(cols = -team_name, names_to = "Stat", values_to = "Value") |>
     pivot_wider(names_from = team_name, values_from = Value) |>
     mutate(across(where(is.numeric), ~ signif(., 3))) 
-    
-    print(fivetwo)
+  
+  print(fivetwo)
   
 }
 
 # Run This ----------------------------------------------------------------
 
 
-table <- rank("ATL", "DET", AVG, OPS, R, HR, SB, ERA_p, WHIP_p, BB9_p, K_9_p, H_9_p, HR_9_p)
+table <- rank("DET", "NYY", AVG, OPS, R, HR, SB, ERA_p, WHIP_p, BB9_p, K_9_p, H_9_p, HR_9_p)

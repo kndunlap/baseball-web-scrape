@@ -426,10 +426,10 @@ rank <- function(team1, team2, column_names = list(), ...) {
     ) |>
     tab_options(
       table.font.size = px(12),
-      table.width = pct(80),
+      table.width = pct(40),
       column_labels.font.weight = "bold",
       data_row.padding = px(5)
-    )
+    ) 
   
   return(table)
 }
